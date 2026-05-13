@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Agent IA - Diagnostic</title>
     <style>
-        body { background: #0d1117; color: #c9d1d9; font-family: sans-serif; padding: 15px; }
+        body { background: #444444; color: #c9d1d9; font-family: sans-serif; padding: 15px; }
         .card { background: #161b22; padding: 15px; border-radius: 10px; border: 1px solid #30363d; margin-bottom: 10px; }
         input, textarea { width: 100%; margin: 5px 0; padding: 12px; border-radius: 8px; border: 1px solid #30363d; background: #000; color: white; box-sizing: border-box; }
         button { width: 100%; padding: 15px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; color: white; margin-top: 5px; }
@@ -93,7 +93,7 @@
             });
 
             const gd = await gres.json();
-            let newCode = gd.candidates[0].content.parts[0].text.replace(/```[a-z]*\n|```/g, "").trim();
+            let newCode = gd.candidates[0].content.parts[0].text.replace(/[a-z]*\n|/g, "").trim();
 
             // 4. Update
             logger("Envoi vers GitHub...");
