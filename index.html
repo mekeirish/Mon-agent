@@ -3,37 +3,113 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agent IA Brahim - Full-Stack</title>
+    <title>IA Control Center - Brahim</title>
     <style>
         :root { --bg: #0d1117; --card: #161b22; --border: #30363d; --blue: #1f6feb; --green: #238636; --text: #c9d1d9; }
         body { background: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; padding: 15px; margin: 0; }
         .container { max-width: 500px; margin: auto; }
-        .card { background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        h2 { font-size: 16px; margin: 0 0 15px 0; color: #58a6ff; text-transform: uppercase; letter-spacing: 1px; }
+        .card { background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 20px; }
+        h2 { font-size: 14px; margin: 0 0 15px 0; color: #58a6ff; text-transform: uppercase; }
         input, textarea { width: 100%; margin-bottom: 12px; padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: #010409; color: white; box-sizing: border-box; font-size: 14px; }
-        .btn { width: 100%; padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; transition: 0.2s; }
-        .btn:active { transform: scale(0.98); }
+        .btn { width: 100%; padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; }
         .save { background: var(--blue); color: white; }
         .run { background: var(--green); color: white; margin-top: 10px; }
-        #log { background: #000; color: #7ee787; padding: 15px; height: 150px; overflow-y: auto; font-family: 'Courier New', monospace; font-size: 12px; border-radius: 8px; border: 1px solid var(--border); line-height: 1.4; }
-        .loader { display: inline-block; animation: rotate 1s linear infinite; margin-right: 5px; }
-        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        #log { background: #000; color: #7ee787; padding: 15px; height: 180px; overflow-y: auto; font-family: monospace; font-size: 11px; border-radius: 8px; border: 1px solid var(--border); line-height: 1.5; }
+        .error { color: #f85149 !important; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="card">
-        <h2>Configuration</h2>
-        <input type="password" id="gk" placeholder="Clé API Gemini">
-        <input type="password" id="gt" placeholder="Token GitHub (Classic)">
+        <h2>🔑 Configuration</h2>
+        <input type="password" id="gk" placeholder="Clé Gemini API">
+        <input type="password" id="gt" placeholder="GitHub Personal Token">
         <input type="text" id="rp" placeholder="Pseudo/Nom-du-Repo">
-        <button class="btn save" onclick="saveData()">💾 SAUVEGARDER CONFIG</button>
+        <button class="btn save" onclick="save()">💾 SAUVEGARDER CONFIG</button>
     </div>
 
     <div class="card">
-        <h2>Action Agent IA</h2>
-        <textarea id="pr" rows="4" placeholder="Ex: Change la couleur du titre en rouge et centre-le"></textarea>
+        <h2>🤖 Action IA</h2>
+        <textarea id="pr" rows="4" placeholder="Ex: Ajoute un menu skeuomorphique et un bouton bleu..."></textarea>
+        <button class="btn run" onclick="start()">⚡ APPLIQUER LA MODIFICATION</button>
+    </div>
+
+    <div id="log">> Système prêt...</div>
+</div>
+
+<script>
+    const logger = (msg, isError = false) => {
+        const l = document.getElementById('log');
+        l.innerHTML += `<div class="${isError ? 'error' : ''}">> ${msg}</div>`;
+        l.scrollTop = l.scrollHeight;
+    };
+
+    function save() {
+        localStorage.setItem('g_key', document.getElementById('gk').value);
+        localStorage.setItem('g_tok', document.getElementById('gt').value);
+        localStorage.setItem('g_rep', document.getElementById('rp').value);
+        alert("Configuration enregistrée !");
+    }
+
+    window.onload = () => {
+        document.getElementById('gk').value = localStorage.getItem('g_key') || '';
+        document.getElementById('gt').value = localStorage.getItem('g_tok') || '';
+        document.getElementById('rp').value = localStorage.getItem('g_rep') || '';
+    };
+
+    async function start() {
+        const k = document.getElementById('gk').value;
+        const t = document.getElementById('gt').value;
+        const r = document.getElementById('rp').value;
+        const p = document.getElementById('pr').value;
+
+        if (!k || !t || !r || !p) return alert("Champs manquants !");
+
+        logger("1. Lecture de index.html sur GitHub...");
+        try {
+            // Lecture du fichier
+            const res = await fetch(`https://api.github.com/repos/${r}/contents/index.html`, {
+                headers: { "Authorization": `token ${t}` }
+            });
+            if (!res.ok) throw new Error("Erreur GitHub (Token ou Repo invalide)");
+            const data = await res.json();
+            const oldCode = decodeURIComponent(escape(atob(data.content)));
+
+            logger("2. Gemini génère le nouveau code...");
+            // Appel Gemini
+            const gres = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${k}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: `Voici mon code :\n${oldCode}\n\nApplique cette modif : ${p}\n\nRéponds avec le code COMPLET mis à jour. Aucun texte avant ou après.` }]}]
+                })
+            });
+            const gd = await gres.json();
+            let newCode = gd.candidates[0].content.parts[0].text.replace(/```[a-z]*\n|```/g, "").trim();
+
+            logger("3. Envoi de la mise à jour...");
+            // Écriture sur GitHub
+            const up = await fetch(`https://api.github.com/repos/${r}/contents/index.html`, {
+                method: "PUT",
+                headers: { "Authorization": `token ${t}`, "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    message: "Modif via IA Agent",
+                    content: btoa(unescape(encodeURIComponent(newCode))),
+                    sha: data.sha
+                })
+            });
+
+            if (up.ok) logger("✅ SUCCÈS ! Actualise ta page dans 1 minute.");
+            else throw new Error("Échec de l'écriture sur GitHub.");
+
+        } catch (e) {
+            logger(e.message, true);
+        }
+    }
+</script>
+</body>
+</html>
         <button class="btn run" onclick="startIA()">⚡ EXÉCUTER LA MODIF</button>
     </div>
 
