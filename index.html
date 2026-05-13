@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agent IA Brahim - Multi-Model</title>
+    <title>Agent IA Brahim - Stable</title>
     <style>
         :root { --bg: #0d1117; --card: #161b22; --border: #30363d; --blue: #1f6feb; --green: #238636; --text: #c9d1d9; }
         body { background: var(--bg); color: var(--text); font-family: sans-serif; padding: 15px; margin: 0; }
         .container { max-width: 500px; margin: auto; }
         .card { background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 15px; }
-        input, textarea { width: 100%; margin-bottom: 10px; padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: #010409; color: white; box-sizing: border-box; }
-        .btn { width: 100%; padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; color: white; }
+        input, textarea { width: 100%; margin-bottom: 10px; padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: #010409; color: white; box-sizing: border-box; font-size: 14px; }
+        .btn { width: 100%; padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; color: white; transition: 0.2s; }
+        .btn:active { transform: scale(0.98); opacity: 0.8; }
         #log { background: #000; color: #7ee787; padding: 15px; height: 180px; overflow-y: auto; font-family: monospace; font-size: 11px; border-radius: 8px; border: 1px solid var(--border); }
         .err { color: #f85149; }
     </style>
@@ -20,17 +21,17 @@
 <div class="container">
     <div class="card">
         <input type="password" id="gk" placeholder="Clé API Gemini">
-        <input type="password" id="gt" placeholder="GitHub Token">
+        <input type="password" id="gt" placeholder="GitHub Token (Classic)">
         <input type="text" id="rp" placeholder="Pseudo/Nom-du-Repo">
         <button class="btn" style="background:var(--blue);" onclick="save()">💾 SAUVEGARDER CONFIG</button>
     </div>
 
     <div class="card">
-        <textarea id="pr" rows="4" placeholder="Ex: Change le titre en rouge..."></textarea>
+        <textarea id="pr" rows="4" placeholder="Ex: Change le titre en 'Portfolio Brahim' et mets les boutons en orange..."></textarea>
         <button class="btn" style="background:var(--green);" onclick="start()">⚡ APPLIQUER LA MODIF</button>
     </div>
 
-    <div id="log">> Prêt...</div>
+    <div id="log">> Système prêt (V1.5)...</div>
 </div>
 
 <script>
@@ -44,7 +45,7 @@
         localStorage.setItem('k_gem', document.getElementById('gk').value.trim());
         localStorage.setItem('k_git', document.getElementById('gt').value.trim());
         localStorage.setItem('k_rep', document.getElementById('rp').value.trim());
-        alert("Config OK !");
+        alert("Configuration enregistrée !");
     }
 
     window.onload = () => {
@@ -53,68 +54,60 @@
         document.getElementById('rp').value = localStorage.getItem('k_rep') || '';
     };
 
-    async function callGemini(key, oldCode, prompt) {
-        // Liste des endpoints à tester par ordre de probabilité
-        const endpoints = [
-            "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent",
-            "https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent"
-        ];
-
-        for (let url of endpoints) {
-            try {
-                logger(`Tentative avec : ${url.split('/models/')[1].split(':')[0]}...`);
-                const res = await fetch(`${url}?key=${key}`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: `Voici mon code :\n${oldCode}\n\nApplique cette modif : ${prompt}\n\nRéponds UNIQUEMENT avec le code HTML complet.` }]}]
-                    })
-                });
-                const data = await res.json();
-                if (data.candidates && data.candidates[0].content) return data;
-            } catch (e) {
-                console.log("Echec endpoint", url);
-            }
-        }
-        throw new Error("Aucun modèle IA n'a répondu. Vérifie ta clé API.");
-    }
-
     async function start() {
         const k = document.getElementById('gk').value;
         const t = document.getElementById('gt').value;
         const r = document.getElementById('rp').value;
         const p = document.getElementById('pr').value;
 
+        if (!k || !t || !r || !p) return alert("Remplis tous les champs !");
+
         document.getElementById('log').innerHTML = "";
-        logger("1. Lecture GitHub...");
+        logger("1. Lecture du fichier GitHub...");
 
         try {
+            // LECTURE GITHUB
             const res = await fetch(`https://api.github.com/repos/${r}/contents/index.html`, {
                 headers: { "Authorization": `token ${t}` }
             });
-            if (!res.ok) throw new Error("GitHub : Repo ou Token invalide");
+            if (!res.ok) throw new Error("GitHub : Repo ou Token invalide (" + res.status + ")");
             const data = await res.json();
             const oldCode = decodeURIComponent(escape(atob(data.content)));
 
-            logger("2. Appel IA...");
-            const gd = await callGemini(k, oldCode, p);
+            logger("2. Appel IA (Gemini 1.5 Flash Latest)...");
+            
+            // ENDPOINT MODIFIÉ : Utilisation de v1beta avec le suffixe -latest
+            const gres = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${k}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: `Voici mon code actuel :\n${oldCode}\n\nModification à faire : ${p}\n\nRéponds UNIQUEMENT le code complet mis à jour, sans balises Markdown.` }]}]
+                })
+            });
+
+            const gd = await gres.json();
+
+            if (gd.error) throw new Error("Gemini Error : " + gd.error.message);
+            if (!gd.candidates || !gd.candidates[0].content) throw new Error("L'IA n'a pas renvoyé de contenu.");
 
             let newCode = gd.candidates[0].content.parts[0].text;
+            // Nettoyage au cas où l'IA met des ```html
             newCode = newCode.replace(/```[a-z]*\n|```/g, "").trim();
 
-            logger("3. Mise à jour GitHub...");
-            const up = await fetch(`https://api.github.com/repos/${r}/contents/index.html`, {
+            logger("3. Écriture sur GitHub...");
+            // ENVOI GITHUB
+            const up = await fetch(`[https://api.github.com/repos/$](https://api.github.com/repos/$){r}/contents/index.html`, {
                 method: "PUT",
                 headers: { "Authorization": `token ${t}`, "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    message: "Modif IA",
+                    message: "Mise à jour via IA Agent",
                     content: btoa(unescape(encodeURIComponent(newCode))),
                     sha: data.sha
                 })
             });
 
-            if (up.ok) logger("✅ RÉUSSI ! Actualise dans 30s.", false);
-            else throw new Error("Erreur push GitHub");
+            if (up.ok) logger("✅ RÉUSSI ! Recharge ta page dans 30 secondes.", false);
+            else throw new Error("Erreur lors du push GitHub.");
 
         } catch (e) {
             logger(e.message, true);
