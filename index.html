@@ -1,115 +1,71 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agent IA Brahim - V1.0</title>
     <style>
-        :root { --bg: #0d1117; --card: #161b22; --border: #30363d; --blue: #1f6feb; --green: #238636; --text: #c9d1d9; }
-        body { background: var(--bg); color: var(--text); font-family: sans-serif; padding: 15px; margin: 0; }
-        .container { max-width: 500px; margin: auto; }
-        .card { background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        h2 { font-size: 14px; margin: 0 0 15px 0; color: #58a6ff; text-transform: uppercase; }
-        input, textarea { width: 100%; margin-bottom: 12px; padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: #010409; color: white; box-sizing: border-box; font-size: 14px; }
-        .btn { width: 100%; padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; transition: 0.2s; }
-        .btn:active { transform: scale(0.98); }
-        .save { background: var(--blue); color: white; }
-        .run { background: var(--green); color: white; margin-top: 10px; }
-        #log { background: #000; color: #7ee787; padding: 15px; height: 150px; overflow-y: auto; font-family: monospace; font-size: 12px; border-radius: 8px; border: 1px solid var(--border); line-height: 1.4; }
+        body { background: #0d1117; color: white; font-family: sans-serif; padding: 20px; }
+        .card { background: #161b22; padding: 15px; border-radius: 10px; border: 1px solid #333; margin-bottom: 20px; }
+        input, textarea { width: 100%; margin: 10px 0; padding: 12px; border-radius: 5px; border: 1px solid #444; background: #000; color: white; box-sizing: border-box; }
+        button { width: 100%; padding: 15px; border-radius: 5px; border: none; font-weight: bold; cursor: pointer; color: white; }
     </style>
 </head>
 <body>
 
-<div class="container">
+    <!-- ZONE 1 : CONFIGURATION -->
     <div class="card">
-        <h2>🔑 Configuration</h2>
-        <input type="password" id="gk" placeholder="Clé API Gemini">
-        <input type="password" id="gt" placeholder="GitHub Token (Classic avec droit 'repo')">
-        <input type="text" id="rp" placeholder="Utilisateur/Nom-du-Repo">
-        <button class="btn save" onclick="saveConfig()">💾 SAUVEGARDER CONFIG</button>
+        <h2 style="color:#58a6ff; font-size:14px;">1. CONFIGURATION</h2>
+        <input type="password" id="gk" placeholder="Clé Gemini">
+        <input type="password" id="gt" placeholder="Token GitHub">
+        <input type="text" id="rp" placeholder="Pseudo/Nom-du-Repo">
+        <button onclick="save()" style="background:#1f6feb;">💾 SAUVEGARDER</button>
     </div>
 
+    <!-- ZONE 2 : L'ENDROIT POUR LES CHANGEMENTS -->
     <div class="card">
-        <h2>🤖 Action de l'IA</h2>
-        <textarea id="pr" rows="4" placeholder="Ex: Change le titre en 'Mon App Mobile' et mets le fond en bleu foncé"></textarea>
-        <button class="btn run" onclick="appliquerModif()">⚡ APPLIQUER LA MODIF</button>
+        <h2 style="color:#238636; font-size:14px;">2. MODIFICATION (ÉCRIS ICI)</h2>
+        <textarea id="pr" rows="4" placeholder="Décris ce que tu veux changer..."></textarea>
+        <button onclick="run()" style="background:#238636;">⚡ APPLIQUER LE CHANGEMENT</button>
     </div>
 
-    <div class="card" style="padding:10px;">
-        <div id="log">> Système prêt...</div>
-    </div>
-</div>
+    <div id="log" style="font-family:monospace; color:#7ee787; font-size:11px;"></div>
 
-<script>
-    const logger = (m) => {
-        const l = document.getElementById('log');
-        l.innerHTML += `<div>> ${m}</div>`;
-        l.scrollTop = l.scrollHeight;
-    };
-
-    function saveConfig() {
-        localStorage.setItem('k_gem', document.getElementById('gk').value);
-        localStorage.setItem('k_git', document.getElementById('gt').value);
-        localStorage.setItem('k_rep', document.getElementById('rp').value);
-        alert("Config sauvegardée dans le navigateur !");
-    }
-
-    window.onload = () => {
-        document.getElementById('gk').value = localStorage.getItem('k_gem') || '';
-        document.getElementById('gt').value = localStorage.getItem('k_git') || '';
-        document.getElementById('rp').value = localStorage.getItem('k_rep') || '';
-    };
-
-    async function appliquerModif() {
-        const k = document.getElementById('gk').value;
-        const t = document.getElementById('gt').value;
-        const r = document.getElementById('rp').value;
-        const p = document.getElementById('pr').value;
-
-        if(!k || !t || !r || !p) return alert("Remplis tous les champs !");
-
-        logger("Connexion à GitHub...");
-        try {
-            // 1. On récupère le code actuel
-            const res = await fetch(`https://api.github.com/repos/${r}/contents/index.html`, {
-                headers: { "Authorization": `token ${t}` }
-            });
-            const data = await res.json();
-            const oldCode = decodeURIComponent(escape(atob(data.content)));
-
-            logger("Envoi à l'IA Gemini...");
-            // 2. On demande la modification à Gemini
-            const gres = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${k}`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    contents: [{ parts: [{ text: `Voici le code HTML actuel :\n${oldCode}\n\nModification demandée : ${p}\n\nRéponds UNIQUEMENT avec le code complet mis à jour.` }]}]
-                })
-            });
-            const gData = await gres.json();
-            let newCode = gData.candidates[0].content.parts[0].text;
-            newCode = newCode.replace(/```[a-z]*\n|
-```/g, "").trim();
-
-            logger("Mise à jour sur GitHub...");
-            // 3. On renvoie le code modifié sur GitHub
-            const up = await fetch(`https://api.github.com/repos/${r}/contents/index.html`, {
-                method: "PUT",
-                headers: { "Authorization": `token ${t}`, "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    message: "Mise à jour via Agent IA",
-                    content: btoa(unescape(encodeURIComponent(newCode))),
-                    sha: data.sha
-                })
-            });
-
-            if(up.ok) logger("✅ RÉUSSI ! Actualise ton site dans 30s.");
-            else logger("❌ Erreur GitHub (vérifie ton Token)");
-
-        } catch(e) {
-            logger("Erreur : " + e.message);
+    <script>
+        function save() {
+            localStorage.setItem('k1', document.getElementById('gk').value);
+            localStorage.setItem('k2', document.getElementById('gt').value);
+            localStorage.setItem('k3', document.getElementById('rp').value);
+            alert("Sauvegardé !");
         }
-    }
-</script>
+
+        window.onload = () => {
+            document.getElementById('gk').value = localStorage.getItem('k1') || '';
+            document.getElementById('gt').value = localStorage.getItem('k2') || '';
+            document.getElementById('rp').value = localStorage.getItem('k3') || '';
+        };
+
+        async function run() {
+            const k=document.getElementById('gk').value, t=document.getElementById('gt').value, r=document.getElementById('rp').value, p=document.getElementById('pr').value;
+            const log=m=>document.getElementById('log').innerHTML+="<div>> "+m+"</div>";
+            log("Lancement...");
+            try {
+                const res = await fetch(`https://api.github.com/repos/${r}/contents/index.html`, {headers:{Authorization:`token ${t}`}});
+                const data = await res.json();
+                const old = decodeURIComponent(escape(atob(data.content)));
+                log("IA en cours...");
+                const gres = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${k}`, {
+                    method:"POST", body:JSON.stringify({contents:[{parts:[{text:"Code:\n"+old+"\nModif:"+p+"\nRéponds avec le code complet."}]}]})
+                });
+                const gd = await gres.json();
+                const newCode = gd.candidates[0].content.parts[0].text.replace(/```[a-z]*\n|```/g, "").trim();
+                log("Envoi GitHub...");
+                const up = await fetch(`https://api.github.com/repos/${r}/contents/index.html`, {
+                    method:"PUT", headers:{Authorization:`token ${t}`},
+                    body:JSON.stringify({message:"IA modif", content:btoa(unescape(encodeURIComponent(newCode))), sha:data.sha})
+                });
+                if(up.ok) log("✅ SUCCÈS !"); else log("❌ Erreur GitHub");
+            } catch(e) { log("Erreur: "+e.message); }
+        }
+    </script>
 </body>
 </html>
