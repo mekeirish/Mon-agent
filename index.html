@@ -3,70 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agent IA Brahim - V2.1</title>
-    <meta name="theme-color" content="#0d1117">
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>Agent IA - Diagnostic</title>
     <style>
-        :root { --bg: #0d1117; --card: #161b22; --border: #30363d; --blue: #1f6feb; --green: #238636; --text: #c9d1d9; }
-        body { background: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; padding: 15px; margin: 0; }
-        .container { max-width: 500px; margin: auto; }
-        .card { background: var(--card); padding: 18px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.4); }
-        h2 { font-size: 12px; margin: 0 0 10px 0; color: #58a6ff; text-transform: uppercase; letter-spacing: 1px; }
-        input, textarea { width: 100%; margin-bottom: 10px; padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: #010409; color: white; box-sizing: border-box; font-size: 14px; outline: none; }
-        input:focus, textarea:focus { border-color: var(--blue); }
-        .btn { width: 100%; padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; color: white; transition: 0.2s; -webkit-tap-highlight-color: transparent; margin-bottom: 5px; }
-        .btn:active { transform: scale(0.96); opacity: 0.8; }
-        #log { background: #000; color: #7ee787; padding: 15px; height: 180px; overflow-y: auto; font-family: monospace; font-size: 11px; border-radius: 8px; border: 1px solid var(--border); line-height: 1.5; }
-        .err { color: #f85149; }
+        body { background: #0d1117; color: #c9d1d9; font-family: sans-serif; padding: 15px; }
+        .card { background: #161b22; padding: 15px; border-radius: 10px; border: 1px solid #30363d; margin-bottom: 10px; }
+        input, textarea { width: 100%; margin: 5px 0; padding: 12px; border-radius: 8px; border: 1px solid #30363d; background: #000; color: white; box-sizing: border-box; }
+        button { width: 100%; padding: 15px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; color: white; margin-top: 5px; }
+        #log { background: #000; color: #7ee787; padding: 15px; height: 250px; overflow-y: auto; font-family: monospace; font-size: 11px; border-radius: 8px; border: 1px solid #30363d; }
+        .blue { background: #1f6feb; }
+        .green { background: #238636; }
     </style>
 </head>
 <body>
 
-<div class="container">
     <div class="card">
-        <h2>🔑 Configuration</h2>
-        <input type="password" id="gk" placeholder="Clé API Gemini" oninput="save()">
-        <input type="password" id="gt" placeholder="GitHub Token" oninput="save()">
-        <input type="text" id="rp" placeholder="Pseudo/Nom-du-Repo" oninput="save()">
-        <!-- LE BOUTON EST ICI -->
-        <button class="btn" style="background:var(--blue);" onclick="manualSave()">💾 SAUVEGARDER LA CONFIG</button>
+        <input type="password" id="gk" placeholder="Clé API Gemini">
+        <input type="password" id="gt" placeholder="GitHub Token">
+        <input type="text" id="rp" placeholder="Pseudo/Repo">
+        <button class="blue" onclick="save()">💾 SAUVEGARDER</button>
     </div>
 
     <div class="card">
-        <h2>🤖 Modification IA</h2>
-        <textarea id="pr" rows="4" placeholder="Ex: Ajoute une barre de navigation..."></textarea>
-        <button class="btn" style="background:var(--green);" onclick="start()">⚡ APPLIQUER LA MODIFICATION</button>
+        <textarea id="pr" rows="3" placeholder="Instruction..."></textarea>
+        <button class="green" onclick="start()">⚡ TESTER & APPLIQUER</button>
     </div>
 
-    <div id="log">> Prêt.</div>
-</div>
+    <div id="log">> Prêt pour le diagnostic...</div>
 
 <script>
-    // Sauvegarde à chaque frappe (silencieux)
-    function save() {
-        localStorage.setItem('k_gem', document.getElementById('gk').value.trim());
-        localStorage.setItem('k_git', document.getElementById('gt').value.trim());
-        localStorage.setItem('k_rep', document.getElementById('rp').value.trim());
-    }
+    const logger = (m, color = "#7ee787") => {
+        document.getElementById('log').innerHTML += `<div style="color:${color}">> ${m}</div>`;
+        document.getElementById('log').scrollTop = document.getElementById('log').scrollHeight;
+    };
 
-    // Sauvegarde via bouton (avec alerte)
-    function manualSave() {
-        save();
-        alert("Configuration bien enregistrée dans le navigateur !");
-        logger("Configuration sauvegardée manuellement.");
+    function save() {
+        localStorage.setItem('k1', document.getElementById('gk').value.trim());
+        localStorage.setItem('k2', document.getElementById('gt').value.trim());
+        localStorage.setItem('k3', document.getElementById('rp').value.trim());
+        alert("Config OK");
     }
 
     window.onload = () => {
-        document.getElementById('gk').value = localStorage.getItem('k_gem') || '';
-        document.getElementById('gt').value = localStorage.getItem('k_git') || '';
-        document.getElementById('rp').value = localStorage.getItem('k_rep') || '';
-        if(localStorage.getItem('k_gem')) logger("Clés chargées avec succès.");
-    };
-
-    const logger = (m, isErr = false) => {
-        const l = document.getElementById('log');
-        l.innerHTML += `<div class="${isErr ? 'err' : ''}">> ${m}</div>`;
-        l.scrollTop = l.scrollHeight;
+        document.getElementById('gk').value = localStorage.getItem('k1') || '';
+        document.getElementById('gt').value = localStorage.getItem('k2') || '';
+        document.getElementById('rp').value = localStorage.getItem('k3') || '';
     };
 
     async function start() {
@@ -75,44 +55,47 @@
         const r = document.getElementById('rp').value;
         const p = document.getElementById('pr').value;
 
-        if (!k || !t || !r || !p) return alert("Remplis tous les champs !");
-
         document.getElementById('log').innerHTML = "";
-        logger("Démarrage...");
+        logger("DÉBUT DU DIAGNOSTIC...");
 
         try {
-            // Détection du modèle
-            logger("Vérification du modèle autorisé...");
+            // 1. Lister les modèles disponibles
+            logger("Vérification des modèles autorisés pour ta clé...");
             const listRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${k}`);
             const listData = await listRes.json();
-            if (listData.error) throw new Error("Clé Gemini invalide.");
-            
-            const model = listData.models.find(m => m.supportedGenerationMethods.includes("generateContent"));
-            const modelName = model ? model.name.split('/').pop() : "gemini-pro";
-            logger(`Modèle détecté : ${modelName}`);
 
-            // Lecture GitHub
-            logger("Lecture du code sur GitHub...");
+            if (listData.error) throw new Error("Clé API invalide : " + listData.error.message);
+
+            // On cherche un modèle qui supporte generateContent
+            const model = listData.models.find(m => m.supportedGenerationMethods.includes("generateContent"));
+            
+            if (!model) throw new Error("Aucun modèle trouvé pour cette clé.");
+            
+            const modelName = model.name.split('/').pop();
+            logger(`MODÈLE DÉTECTÉ : ${modelName}`, "#58a6ff");
+
+            // 2. Lire GitHub
+            logger("Lecture GitHub...");
             const gitRes = await fetch(`https://api.github.com/repos/${r}/contents/index.html`, {
                 headers: { "Authorization": `token ${t}` }
             });
             const gitData = await gitRes.json();
             const oldCode = decodeURIComponent(escape(atob(gitData.content)));
 
-            // Appel IA
-            logger("Génération du nouveau code...");
+            // 3. Appel IA avec le modèle détecté
+            logger(`Appel IA avec ${modelName}...`);
             const gres = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${k}`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    contents: [{ parts: [{ text: `Voici mon code :\n${oldCode}\n\nModif : ${p}\n\nRéponds UNIQUEMENT le code HTML complet.` }]}]
+                    contents: [{ parts: [{ text: `Code actuel:\n${oldCode}\n\nModif: ${p}\n\nRéponds avec le code complet.` }]}]
                 })
             });
-            const gd = await gres.json();
-            let newCode = gd.candidates[0].content.parts[0].text.replace(/```[a-z]*\n|
-```/g, "").trim();
 
-            // Envoi GitHub
+            const gd = await gres.json();
+            let newCode = gd.candidates[0].content.parts[0].text.replace(/```[a-z]*\n|```/g, "").trim();
+
+            // 4. Update
             logger("Envoi vers GitHub...");
             const up = await fetch(`https://api.github.com/repos/${r}/contents/index.html`, {
                 method: "PUT",
@@ -124,11 +107,12 @@
                 })
             });
 
-            if (up.ok) logger("✅ RÉUSSI ! Recharge dans 30s.");
-            else throw new Error("Erreur GitHub.");
+            if (up.ok) logger("✅ RÉUSSI AVEC " + modelName, "#238636");
+            else logger("❌ Erreur GitHub", "red");
 
         } catch (e) {
-            logger(e.message, true);
+            logger("ERREUR : " + e.message, "#f85149");
+            console.error(e);
         }
     }
 </script>
