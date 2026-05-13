@@ -1,16 +1,17 @@
 {
-    "short_name": "Braincode",
-    "name": "Braincode",
-    "icons": [
-        {
-            "src": "icon.png",
-            "sizes": "512x512",
-            "type": "image/png",
-            "purpose": "any maskable"
-        }
-    ],
-    "start_url": "./index.html",
-    "display": "standalone",
-    "theme_color": "#364224",
-    "background_color": "#364224"
+  "name": "Braincode AI",
+  "short_name": "Braincode",
+  "description": "Diagnostic et modification de code via Gemini & GitHub",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#0d1117",
+  "theme_color": "#1f6feb",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
 }
