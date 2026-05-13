@@ -2,100 +2,60 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Braincode - Diagnostic</title>
-    <!-- PWA Meta Tags -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent IA - PWA</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0d1117">
-    <meta name="apple-mobile-web-app-capable" content="yes">
     <link rel="apple-touch-icon" href="icon.png">
-
     <style>
-        :root {
-            --bg: #0d1117;
-            --card: #161b22;
-            --border: #30363d;
-            --text: #c9d1d9;
-            --shadow: rgba(0,0,0,0.5);
-            --highlight: rgba(255,255,255,0.05);
-        }
-        body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; padding: 15px; margin: 0; }
-        
-        /* Style Neumorphique Léger */
-        .card { 
-            background: var(--card); 
-            padding: 20px; 
-            border-radius: 15px; 
-            border: 1px solid var(--border); 
-            margin-bottom: 20px;
-            box-shadow: 6px 6px 12px var(--shadow), -2px -2px 8px var(--highlight);
-        }
-
-        input, textarea { 
-            width: 100%; margin: 8px 0; padding: 14px; 
-            border-radius: 10px; border: 1px solid #000; 
-            background: #080a0c; color: #fff; box-sizing: border-box;
-            box-shadow: inset 2px 2px 5px var(--shadow);
-            font-size: 14px;
-        }
-
-        button { 
-            width: 100%; padding: 16px; border-radius: 12px; border: none; 
-            font-weight: bold; cursor: pointer; color: white; margin-top: 10px;
-            text-transform: uppercase; letter-spacing: 1px;
-            box-shadow: 3px 3px 6px var(--shadow);
-            transition: transform 0.1s;
-        }
-        button:active { transform: scale(0.98); box-shadow: inset 2px 2px 5px var(--shadow); }
-
-        #log { 
-            background: #000; color: #7ee787; padding: 15px; height: 200px; 
-            overflow-y: auto; font-family: 'Courier New', monospace; font-size: 12px; 
-            border-radius: 12px; border: 1px solid var(--border);
-            box-shadow: inset 0 0 10px #000;
-        }
-        .blue { background: linear-gradient(145deg, #1f6feb, #1a5cba); }
-        .green { background: linear-gradient(145deg, #238636, #1c6b2c); }
+        body { background: #0d1117; color: #c9d1d9; font-family: sans-serif; padding: 15px; }
+        .card { background: #161b22; padding: 15px; border-radius: 10px; border: 1px solid #30363d; margin-bottom: 10px; }
+        input, textarea { width: 100%; margin: 5px 0; padding: 12px; border-radius: 8px; border: 1px solid #30363d; background: #000; color: white; box-sizing: border-box; }
+        button { width: 100%; padding: 15px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; color: white; margin-top: 5px; transition: 0.2s; }
+        #log { background: #000; color: #7ee787; padding: 15px; height: 250px; overflow-y: auto; font-family: monospace; font-size: 11px; border-radius: 8px; border: 1px solid #30363d; }
+        .blue { background: #1f6feb; }
+        .green { background: #238636; }
+        button:active { transform: scale(0.98); }
     </style>
 </head>
 <body>
 
     <div class="card">
-        <h3 style="margin-top:0">⚙️ Configuration</h3>
-        <input type="password" id="gk" placeholder="Clé API Gemini">
-        <input type="password" id="gt" placeholder="GitHub Token">
-        <input type="text" id="rp" placeholder="Pseudo/Repo (ex: brahim/my-app)">
-        <button class="blue" onclick="save()">💾 SAUVEGARDER</button>
+        <input type="password" id="gk" placeholder="Clé API Gemini" oninput="save()">
+        <input type="password" id="gt" placeholder="GitHub Token" oninput="save()">
+        <input type="text" id="rp" placeholder="Pseudo/Repo" oninput="save()">
+        <button class="blue" onclick="manualSave()">💾 SAUVEGARDER</button>
     </div>
 
     <div class="card">
-        <textarea id="pr" rows="3" placeholder="Quelle modification voulez-vous apporter ?"></textarea>
+        <textarea id="pr" rows="3" placeholder="Instruction de modification..."></textarea>
         <button class="green" onclick="start()">⚡ TESTER & APPLIQUER</button>
     </div>
 
-    <div id="log">> Système Braincode prêt...</div>
+    <div id="log">> Prêt...</div>
 
 <script>
     // Enregistrement du Service Worker pour la PWA
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./sw.js')
-            .then(reg => console.log('SW enregistré !'))
-            .catch(err => console.log('Erreur SW', err));
+        navigator.serviceWorker.register('sw.js').then(() => {
+            console.log("Service Worker Enregistré");
         });
     }
 
     const logger = (m, color = "#7ee787") => {
-        const log = document.getElementById('log');
-        log.innerHTML += `<div style="color:${color}">> ${m}</div>`;
-        log.scrollTop = log.scrollHeight;
+        document.getElementById('log').innerHTML += `<div style="color:${color}">> ${m}</div>`;
+        document.getElementById('log').scrollTop = document.getElementById('log').scrollHeight;
     };
 
     function save() {
         localStorage.setItem('k1', document.getElementById('gk').value.trim());
         localStorage.setItem('k2', document.getElementById('gt').value.trim());
         localStorage.setItem('k3', document.getElementById('rp').value.trim());
-        alert("Configuration sauvegardée localement.");
+    }
+
+    function manualSave() {
+        save();
+        alert("Configuration sauvegardée !");
     }
 
     window.onload = () => {
@@ -110,54 +70,51 @@
         const r = document.getElementById('rp').value;
         const p = document.getElementById('pr').value;
 
-        if(!k || !t || !r || !p) return alert("Champs manquants !");
-
         document.getElementById('log').innerHTML = "";
         logger("DÉBUT DU DIAGNOSTIC...");
 
         try {
-            logger("Identification du modèle Gemini...");
             const listRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${k}`);
             const listData = await listRes.json();
-            if (listData.error) throw new Error("Clé invalide : " + listData.error.message);
+            if (listData.error) throw new Error("Clé API invalide");
 
             const model = listData.models.find(m => m.supportedGenerationMethods.includes("generateContent"));
-            const modelName = model ? model.name.split('/').pop() : "gemini-pro";
-            logger(`MODÈLE : ${modelName}`, "#58a6ff");
+            if (!model) throw new Error("Aucun modèle trouvé.");
+            const modelName = model.name.split('/').pop();
+            logger(`MODÈLE DÉTECTÉ : ${modelName}`, "#58a6ff");
 
-            logger("Récupération du code sur GitHub...");
+            logger("Lecture GitHub...");
             const gitRes = await fetch(`https://api.github.com/repos/${r}/contents/index.html`, {
                 headers: { "Authorization": `token ${t}` }
             });
             const gitData = await gitRes.json();
             const oldCode = decodeURIComponent(escape(atob(gitData.content)));
 
-            logger("Analyse et génération par l'IA...");
+            logger(`Appel IA (${modelName})...`);
             const gres = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${k}`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    contents: [{ parts: [{ text: `Voici mon code :\n${oldCode}\n\nApplique cette modif : ${p}\n\nRéponds uniquement avec le code complet, sans explications.` }]}]
+                    contents: [{ parts: [{ text: `Code actuel:\n${oldCode}\n\nModif: ${p}\n\nRéponds avec le code complet.` }]}]
                 })
             });
 
             const gd = await gres.json();
-            let newCode = gd.candidates[0].content.parts[0].text.replace(/```[a-z]*\n|
-```/g, "").trim();
+            let newCode = gd.candidates[0].content.parts[0].text.replace(/```[a-z]*\n|```/g, "").trim();
 
-            logger("Mise à jour du dépôt...");
+            logger("Envoi vers GitHub...");
             const up = await fetch(`https://api.github.com/repos/${r}/contents/index.html`, {
                 method: "PUT",
                 headers: { "Authorization": `token ${t}`, "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    message: "Braincode Update 🧠",
+                    message: "Modif IA",
                     content: btoa(unescape(encodeURIComponent(newCode))),
                     sha: gitData.sha
                 })
             });
 
-            if (up.ok) logger("✅ DÉPLOIEMENT RÉUSSI !", "#238636");
-            else logger("❌ Erreur de push GitHub", "red");
+            if (up.ok) logger("✅ RÉUSSI AVEC " + modelName, "#238636");
+            else logger("❌ Erreur GitHub", "red");
 
         } catch (e) {
             logger("ERREUR : " + e.message, "#f85149");
@@ -166,4 +123,3 @@
 </script>
 </body>
 </html>
-</body></html>```
