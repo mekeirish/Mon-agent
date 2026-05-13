@@ -1,11 +1,10 @@
 {
-  "name": "Braincode AI",
-  "short_name": "Braincode",
-  "description": "Diagnostic et modification de code via Gemini & GitHub",
+  "name": "Agent IA Brahim",
+  "short_name": "Agent IA",
   "start_url": "index.html",
   "display": "standalone",
   "background_color": "#0d1117",
-  "theme_color": "#1f6feb",
+  "theme_color": "#0d1117",
   "icons": [
     {
       "src": "icon.png",
