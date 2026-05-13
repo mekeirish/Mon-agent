@@ -1,96 +1,126 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent IA Brahim - V1.1</title>
     <style>
-        body { background: #0d1117; color: white; font-family: sans-serif; padding: 15px; }
-        .card { background: #161b22; padding: 15px; border-radius: 10px; border: 1px solid #333; margin-bottom: 15px; }
-        input, textarea { width: 100%; margin: 8px 0; padding: 12px; border-radius: 5px; border: 1px solid #444; background: #000; color: white; box-sizing: border-box; }
-        button { width: 100%; padding: 15px; border-radius: 5px; border: none; font-weight: bold; cursor: pointer; color: white; }
-        #log { font-family: monospace; color: #7ee787; font-size: 11px; padding: 10px; background: #000; border-radius: 5px; min-height: 50px; }
+        :root { --bg: #0d1117; --card: #161b22; --border: #30363d; --blue: #1f6feb; --green: #238636; --text: #c9d1d9; }
+        body { background: var(--bg); color: var(--text); font-family: sans-serif; padding: 15px; margin: 0; }
+        .container { max-width: 500px; margin: auto; }
+        .card { background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 15px; }
+        h2 { font-size: 14px; margin: 0 0 10px 0; color: #58a6ff; text-transform: uppercase; }
+        input, textarea { width: 100%; margin-bottom: 10px; padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: #010409; color: white; box-sizing: border-box; font-size: 14px; }
+        .btn { width: 100%; padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; }
+        .save { background: var(--blue); color: white; }
+        .run { background: var(--green); color: white; margin-top: 5px; }
+        #log { background: #000; color: #7ee787; padding: 15px; height: 180px; overflow-y: auto; font-family: monospace; font-size: 11px; border-radius: 8px; border: 1px solid var(--border); }
+        .err { color: #f85149; }
     </style>
 </head>
 <body>
 
+<div class="container">
     <div class="card">
-        <h2 style="color:#58a6ff; font-size:14px; margin:0;">1. CONFIGURATION</h2>
-        <input type="password" id="gk" placeholder="Clé Gemini">
-        <input type="password" id="gt" placeholder="Token GitHub">
+        <h2>🔑 Configuration</h2>
+        <input type="password" id="gk" placeholder="Clé API Gemini">
+        <input type="password" id="gt" placeholder="GitHub Token (droits 'repo')">
         <input type="text" id="rp" placeholder="Pseudo/Nom-du-Repo">
-        <button onclick="save()" style="background:#1f6feb;">💾 SAUVEGARDER</button>
+        <button class="btn save" onclick="save()">💾 SAUVEGARDER CONFIG</button>
     </div>
 
     <div class="card">
-        <h2 style="color:#238636; font-size:14px; margin:0;">2. MODIFICATION</h2>
-        <textarea id="pr" rows="4" placeholder="Ex: Change le titre en rouge..."></textarea>
-        <button onclick="run()" style="background:#238636;">⚡ APPLIQUER</button>
+        <h2>🤖 Action IA</h2>
+        <textarea id="pr" rows="4" placeholder="Ex: Change le titre en 'Mon App' et mets le fond en noir"></textarea>
+        <button class="btn run" onclick="start()">⚡ APPLIQUER LA MODIFICATION</button>
     </div>
 
-    <div id="log">Prêt...</div>
+    <div id="log">> Système prêt...</div>
+</div>
 
-    <script>
-        function save() {
-            localStorage.setItem('k1', document.getElementById('gk').value);
-            localStorage.setItem('k2', document.getElementById('gt').value);
-            localStorage.setItem('k3', document.getElementById('rp').value);
-            alert("Sauvegardé !");
-        }
+<script>
+    const logger = (m, isErr = false) => {
+        const l = document.getElementById('log');
+        l.innerHTML += `<div class="${isErr ? 'err' : ''}">> ${m}</div>`;
+        l.scrollTop = l.scrollHeight;
+    };
 
-        window.onload = () => {
-            document.getElementById('gk').value = localStorage.getItem('k1') || '';
-            document.getElementById('gt').value = localStorage.getItem('k2') || '';
-            document.getElementById('rp').value = localStorage.getItem('k3') || '';
-        };
+    function save() {
+        localStorage.setItem('k_gem', document.getElementById('gk').value.trim());
+        localStorage.setItem('k_git', document.getElementById('gt').value.trim());
+        localStorage.setItem('k_rep', document.getElementById('rp').value.trim());
+        alert("Configuration enregistrée !");
+    }
 
-        async function run() {
-            const k=document.getElementById('gk').value, t=document.getElementById('gt').value, r=document.getElementById('rp').value, p=document.getElementById('pr').value;
-            const logBox=document.getElementById('log');
-            const log=m=>logBox.innerHTML+="<div>> "+m+"</div>";
-            
-            logBox.innerHTML = ""; // Nettoyer le log
-            log("Démarrage...");
+    window.onload = () => {
+        document.getElementById('gk').value = localStorage.getItem('k_gem') || '';
+        document.getElementById('gt').value = localStorage.getItem('k_git') || '';
+        document.getElementById('rp').value = localStorage.getItem('k_rep') || '';
+    };
 
-            try {
-                // 1. Lire GitHub
-                const res = await fetch(`https://api.github.com/repos/${r}/contents/index.html`, {headers:{Authorization:`token ${t}`}});
-                if(!res.ok) throw new Error("GitHub: Repo ou Token invalide");
-                const data = await res.json();
-                const old = decodeURIComponent(escape(atob(data.content)));
+    async function start() {
+        const k = document.getElementById('gk').value;
+        const t = document.getElementById('gt').value;
+        const r = document.getElementById('rp').value;
+        const p = document.getElementById('pr').value;
 
-                // 2. IA Gemini
-                log("Appel Gemini...");
-                const gres = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${k}`, {
-                    method:"POST", 
-                    headers: {"Content-Type": "application/json"},
-                    body:JSON.stringify({contents:[{parts:[{text:"Voici mon code actuel :\n"+old+"\n\nConsigne : "+p+"\n\nRéponds UNIQUEMENT avec le code HTML complet mis à jour sans texte autour."}]}]})
-                });
+        if (!k || !t || !r || !p) return alert("Remplis tous les champs !");
 
-                const gd = await gres.json();
-                
-                // --- VÉRIFICATION DE LA RÉPONSE IA ---
-                if (!gd.candidates || !gd.candidates[0]) {
-                    console.log(gd);
-                    throw new Error("Gemini n'a pas pu répondre. Vérifie ta clé API.");
-                }
+        document.getElementById('log').innerHTML = ""; // Reset log
+        logger("1. Lecture du fichier sur GitHub...");
 
-                const newCode = gd.candidates[0].content.parts[0].text.replace(/```[a-z]*\n|```/g, "").trim();
-                
-                // 3. Envoyer GitHub
-                log("Envoi à GitHub...");
-                const up = await fetch(`https://api.github.com/repos/${r}/contents/index.html`, {
-                    method:"PUT", 
-                    headers:{Authorization:`token ${t}`, "Content-Type": "application/json"},
-                    body:JSON.stringify({message:"IA modif", content:btoa(unescape(encodeURIComponent(newCode))), sha:data.sha})
-                });
+        try {
+            // ÉTAPE 1 : RÉCUPÉRER LE CODE
+            const res = await fetch(`https://api.github.com/repos/${r}/contents/index.html`, {
+                headers: { "Authorization": `token ${t}` }
+            });
+            if (!res.ok) throw new Error("GitHub : Repo ou Token invalide (" + res.status + ")");
+            const data = await res.json();
+            const oldCode = decodeURIComponent(escape(atob(data.content)));
 
-                if(up.ok) log("✅ MODIFICATION RÉUSSIE !"); 
-                else log("❌ Erreur lors de l'enregistrement GitHub.");
+            logger("2. Appel à Gemini 1.5 Flash...");
+            // ÉTAPE 2 : APPEL GEMINI
+            const gres = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${k}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: `Voici mon code HTML actuel :\n${oldCode}\n\nModification à faire : ${p}\n\nRéponds UNIQUEMENT le code complet mis à jour.` }]}]
+                })
+            });
 
-            } catch(e) { 
-                log("<span style='color:red;'>Erreur: " + e.message + "</span>"); 
+            const gd = await gres.json();
+
+            if (gd.error) {
+                throw new Error("Gemini Error : " + gd.error.message + " (Code: " + gd.error.code + ")");
             }
+
+            if (!gd.candidates || !gd.candidates[0].content) {
+                throw new Error("Gemini n'a pas renvoyé de contenu. Vérifie ta clé.");
+            }
+
+            let newCode = gd.candidates[0].content.parts[0].text;
+            newCode = newCode.replace(/```[a-z]*\n|```/g, "").trim();
+
+            logger("3. Écriture sur GitHub...");
+            // ÉTAPE 3 : ENVOI GITHUB
+            const up = await fetch(`https://api.github.com/repos/${r}/contents/index.html`, {
+                method: "PUT",
+                headers: { "Authorization": `token ${t}`, "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    message: "Mise à jour via Agent IA",
+                    content: btoa(unescape(encodeURIComponent(newCode))),
+                    sha: data.sha
+                })
+            });
+
+            if (up.ok) logger("✅ RÉUSSI ! Recharge ta page dans 30 secondes.");
+            else throw new Error("Erreur lors de l'enregistrement GitHub.");
+
+        } catch (e) {
+            logger(e.message, true);
+            console.error(e);
         }
-    </script>
+    }
+</script>
 </body>
 </html>
