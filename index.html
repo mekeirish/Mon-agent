@@ -5,52 +5,180 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Agent IA - PWA</title>
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#0d1117">
+    <meta name="theme-color" content="#1e1e22">
     <link rel="apple-touch-icon" href="icon.png">
     <style>
-        body { background: #0d1117; color: #c9d1d9; font-family: sans-serif; padding: 15px; }
-        .card { background: #161b22; padding: 15px; border-radius: 10px; border: 1px solid #30363d; margin-bottom: 10px; }
-        input, textarea { width: 100%; margin: 5px 0; padding: 12px; border-radius: 8px; border: 1px solid #30363d; background: #000; color: white; box-sizing: border-box; }
-        button { width: 100%; padding: 15px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; color: white; margin-top: 5px; transition: 0.2s; }
-        #log { background: #000; color: #7ee787; padding: 15px; height: 250px; overflow-y: auto; font-family: monospace; font-size: 11px; border-radius: 8px; border: 1px solid #30363d; }
-        .blue { background: #1f6feb; }
-        .green { background: #238636; }
-        button:active { transform: scale(0.98); }
+        body { 
+            background: #1e1e22; 
+            color: #c9d1d9; 
+            font-family: sans-serif; 
+            padding: 15px; 
+            display: flex; 
+            flex-direction: column; 
+            min-height: 94vh; 
+        }
+        .card { 
+            background: #1e1e22; 
+            padding: 20px; 
+            border-radius: 16px; 
+            box-shadow: 6px 6px 12px #111113, -6px -6px 12px #2b2b31; 
+            border: none; 
+            margin-bottom: 20px; 
+        }
+        input, textarea { 
+            width: 100%; 
+            margin: 8px 0; 
+            padding: 14px; 
+            border-radius: 12px; 
+            border: none; 
+            background: #1e1e22; 
+            color: white; 
+            box-sizing: border-box; 
+            box-shadow: inset 4px 4px 8px #111113, inset -4px -4px 8px #2b2b31; 
+            outline: none;
+            transition: box-shadow 0.3s ease;
+        }
+        input:focus, textarea:focus {
+            box-shadow: inset 2px 2px 4px #111113, inset -2px -2px 4px #2b2b31, 0 0 4px rgba(255, 122, 0, 0.4);
+        }
+        button { 
+            width: 100%; 
+            padding: 15px; 
+            border-radius: 12px; 
+            border: none; 
+            font-weight: bold; 
+            cursor: pointer; 
+            margin-top: 10px; 
+            transition: all 0.2s ease; 
+            background: #1e1e22; 
+            box-shadow: 5px 5px 10px #111113, -5px -5px 10px #2b2b31; 
+        }
+        button:active { 
+            box-shadow: inset 4px 4px 8px #111113, inset -4px -4px 8px #2b2b31; 
+            transform: scale(0.99); 
+        }
+        .blue { color: #58a6ff; }
+        .green { color: #7ee787; }
+        .orange-btn { color: #ff7a00; }
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 10px;
+        }
+        #log { 
+            background: #1e1e22; 
+            color: #7ee787; 
+            padding: 15px; 
+            height: 250px; 
+            overflow-y: auto; 
+            font-family: monospace; 
+            font-size: 11px; 
+            border-radius: 14px; 
+            box-shadow: inset 4px 4px 8px #111113, inset -4px -4px 8px #2b2b31; 
+            border: none;
+            margin-top: 15px;
+        }
+        .live-container { 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            margin-top: 20px; 
+            background: #1e1e22; 
+            padding: 12px; 
+            border-radius: 14px; 
+            box-shadow: inset 4px 4px 8px #111113, inset -4px -4px 8px #2b2b31; 
+        }
+        .live-btn { 
+            flex-grow: 1; 
+            background: #1e1e22; 
+            color: #ffca28; 
+            border: none; 
+            padding: 12px; 
+            border-radius: 10px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            text-align: center; 
+            text-decoration: none; 
+            margin: 0 15px; 
+            transition: all 0.2s ease; 
+            display: block; 
+            font-size: 14px; 
+            box-shadow: 4px 4px 8px #111113, -4px -4px 8px #2b2b31;
+        }
+        .live-btn:active { 
+            box-shadow: inset 3px 3px 6px #111113, inset -3px -3px 6px #2b2b31; 
+        }
+        .voyant { width: 12px; height: 12px; border-radius: 50%; background: #111113; box-shadow: inset 1px 1px 2px #000; transition: all 0.4s ease; }
+        .voyant.yellow { background: #ffca28; box-shadow: 0 0 10px #ffca28, 0 0 20px #ffca28; animation: pulse-yellow 1s infinite alternate; }
+        .voyant.green { background: #238636; box-shadow: 0 0 10px #238636, 0 0 20px #238636; animation: pulse-green 1s infinite alternate; }
+        .voyant.red { background: #f85149; box-shadow: 0 0 10px #f85149, 0 0 20px #f85149; animation: pulse-red 1s infinite alternate; }
+        @keyframes pulse-yellow { from { opacity: 0.5; } to { opacity: 1; } }
+        @keyframes pulse-green { from { opacity: 0.5; } to { opacity: 1; } }
+        @keyframes pulse-red { from { opacity: 0.5; } to { opacity: 1; } }
+        .signature {
+            text-align: center;
+            font-size: 12px;
+            color: #6e7681;
+            margin-top: auto;
+            padding-top: 25px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
     </style>
-</head>
-<body>
 
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#4b6cb7">
+<link rel="apple-touch-icon" href="icon.png"></head>
+<body>
     <div class="card">
         <input type="password" id="gk" placeholder="Clé API Gemini" oninput="save()">
         <input type="password" id="gt" placeholder="GitHub Token" oninput="save()">
         <input type="text" id="rp" placeholder="Pseudo/Repo" oninput="save()">
         <button class="blue" onclick="manualSave()">💾 SAUVEGARDER</button>
     </div>
-
     <div class="card">
         <textarea id="pr" rows="3" placeholder="Instruction de modification..."></textarea>
         <button class="green" onclick="start()">⚡ TESTER & APPLIQUER</button>
+        <div class="btn-group">
+            <button class="orange-btn" onclick="showHistory()">📜 HISTORIQUE</button>
+            <button class="orange-btn" onclick="undoLast()">↩️ BACK</button>
+        </div>
+        <div class="live-container">
+            <div class="voyant" id="voyantLeft"></div>
+            <a id="liveBtn" class="live-btn" href="#" target="_blank">VOIR LE SITE LIVE</a>
+            <div class="voyant" id="voyantRight"></div>
+        </div>
     </div>
-
-    <div id="log">> Prêt...</div>
+    <div id="log">> Initialisation...</div>
+    <div class="signature">Made by Brahim Laiche 2026 Paris</div>
 
 <script>
-    // Enregistrement du Service Worker pour la PWA
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js').then(() => {
-            console.log("Service Worker Enregistré");
-        });
-    }
+    // Variables globales de contrôle du statut de déploiement
+    let isDeploying = false;
+    let deploymentStartTime = 0;
 
     const logger = (m, color = "#7ee787") => {
-        document.getElementById('log').innerHTML += `<div style="color:${color}">> ${m}</div>`;
-        document.getElementById('log').scrollTop = document.getElementById('log').scrollHeight;
+        const logEl = document.getElementById('log');
+        if (logEl) {
+            logEl.innerHTML += `<div style="color:${color}">> ${m}</div>`;
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+    };
+
+    window.onerror = function(message, source, lineno, colno, error) {
+        logger(`CRASH SCRIPT : ${message} (Ligne ${lineno})`, "#f85149");
+        return false;
     };
 
     function save() {
-        localStorage.setItem('k1', document.getElementById('gk').value.trim());
-        localStorage.setItem('k2', document.getElementById('gt').value.trim());
-        localStorage.setItem('k3', document.getElementById('rp').value.trim());
+        try {
+            localStorage.setItem('k1', document.getElementById('gk').value.trim());
+            localStorage.setItem('k2', document.getElementById('gt').value.trim());
+            localStorage.setItem('k3', document.getElementById('rp').value.trim());
+            updateLiveLink();
+        } catch (e) {
+            logger("Erreur sauvegarde auto : " + e.message, "#f85149");
+        }
     }
 
     function manualSave() {
@@ -58,39 +186,198 @@
         alert("Configuration sauvegardée !");
     }
 
-    window.onload = () => {
-        document.getElementById('gk').value = localStorage.getItem('k1') || '';
-        document.getElementById('gt').value = localStorage.getItem('k2') || '';
-        document.getElementById('rp').value = localStorage.getItem('k3') || '';
-    };
+    function updateLiveLink() {
+        try {
+            const r = document.getElementById('rp').value.trim();
+            const btn = document.getElementById('liveBtn');
+            if (r && r.includes('/')) {
+                const [user, repo] = r.split('/');
+                btn.href = `https://${user.toLowerCase()}.github.io/${repo}/`;
+            } else {
+                btn.href = "#";
+            }
+        } catch (e) {
+            logger("Erreur lien live : " + e.message, "#f85149");
+        }
+    }
+
+    async function checkWorkflowStatus() {
+        try {
+            const t = document.getElementById('gt').value.trim();
+            const r = document.getElementById('rp').value.trim();
+            if (!t || !r || !r.includes('/')) return;
+
+            const res = await fetch(`https://api.github.com/repos/${r}/actions/runs?per_page=1`, {
+                headers: { "Authorization": `token ${t}` }
+            });
+            if (!res.ok) return;
+            const data = await res.json();
+            
+            if (data && data.workflow_runs && data.workflow_runs.length > 0) {
+                const latestRun = data.workflow_runs[0];
+                const vLeft = document.getElementById('voyantLeft');
+                const vRight = document.getElementById('voyantRight');
+                if (!vLeft || !vRight) return;
+                
+                const runCreatedTime = new Date(latestRun.created_at).getTime();
+
+                // Si une opération est en cours mais que GitHub remonte un vieux run complété antérieur au clic, on force le maintien du jaune.
+                if (isDeploying && runCreatedTime < deploymentStartTime) {
+                    vLeft.className = 'voyant yellow';
+                    vRight.className = 'voyant yellow';
+                    return;
+                }
+
+                // Si le run détecté correspond ou est postérieur à notre action, on suit son état réel
+                vLeft.className = 'voyant';
+                vRight.className = 'voyant';
+
+                if (latestRun.status === 'queued' || latestRun.status === 'in_progress') {
+                    vLeft.classList.add('yellow'); vRight.classList.add('yellow');
+                } else if (latestRun.status === 'completed' && latestRun.conclusion === 'success') {
+                    vLeft.classList.add('green'); vRight.classList.add('green');
+                    if (isDeploying) {
+                        logger("🚀 LE DÉPLOIEMENT GITHUB PAGES EST EFFECTIF !", "#7ee787");
+                        isDeploying = false; // Relâche le verrou, le site est à jour
+                    }
+                } else if (latestRun.status === 'completed' && (latestRun.conclusion === 'failure' || latestRun.conclusion === 'cancelled')) {
+                    vLeft.classList.add('red'); vRight.classList.add('red');
+                    isDeploying = false;
+                }
+            }
+        } catch (e) {
+            // Échec silencieux
+        }
+    }
+
+    async function showHistory() {
+        try {
+            const t = document.getElementById('gt').value.trim();
+            const r = document.getElementById('rp').value.trim();
+            if (!t || !r || !r.includes('/')) {
+                logger("Erreur : Configuration GitHub incomplète.", "#f85149");
+                return;
+            }
+            document.getElementById('log').innerHTML = "";
+            logger("RÉCUPÉRATION DE L'HISTORIQUE...", "#ff7a00");
+            
+            const res = await fetch(`https://api.github.com/repos/${r}/commits?path=index.html&per_page=7`, {
+                headers: { "Authorization": `token ${t}` }
+            });
+            if (!res.ok) throw new Error("Réponse serveur GitHub KO (Status " + res.status + ")");
+            const commits = await res.json();
+            
+            logger("--- DERNIÈRES MODIFICATIONS ---", "#58a6ff");
+            commits.forEach((c, idx) => {
+                const dateStr = new Date(c.commit.author.date).toLocaleDateString('fr-FR', {hour: '2-digit', minute:'2-digit'});
+                logger(`[${idx}] ${dateStr} - ${c.commit.message}`, "#c9d1d9");
+            });
+        } catch (e) {
+            logger("ERREUR HISTORIQUE : " + e.message, "#f85149");
+        }
+    }
+
+    async function undoLast() {
+        try {
+            const t = document.getElementById('gt').value.trim();
+            const r = document.getElementById('rp').value.trim();
+            if (!t || !r || !r.includes('/')) {
+                logger("Erreur : Configuration GitHub incomplète.", "#f85149");
+                return;
+            }
+
+            // Armement du verrou de déploiement et de l'état visuel jaune immédiat
+            isDeploying = true;
+            deploymentStartTime = Date.now();
+            const vl = document.getElementById('voyantLeft'); const vr = document.getElementById('voyantRight');
+            if(vl && vr) { vl.className = 'voyant yellow'; vr.className = 'voyant yellow'; }
+
+            document.getElementById('log').innerHTML = "";
+            logger("LANCEMENT DE LA PROCÉDURE DE BACK...", "#ff7a00");
+
+            const commitsRes = await fetch(`https://api.github.com/repos/${r}/commits?path=index.html&per_page=2`, {
+                headers: { "Authorization": `token ${t}` }
+            });
+            if (!commitsRes.ok) throw new Error("Impossible d'accéder aux commits.");
+            const commits = await commitsRes.json();
+            if (commits.length < 2) throw new Error("Historique insuffisant pour un back.");
+            const prevCommitSha = commits[1].sha;
+            
+            logger(`Cible : Version précédente (${prevCommitSha.substring(0, 7)})`);
+            const prevContentRes = await fetch(`https://api.github.com/repos/${r}/contents/index.html?ref=${prevCommitSha}`, {
+                headers: { "Authorization": `token ${t}` }
+            });
+            if (!prevContentRes.ok) throw new Error("Lecture du code précédent impossible.");
+            const prevData = await prevContentRes.json();
+            
+            const currentFileRes = await fetch(`https://api.github.com/repos/${r}/contents/index.html`, {
+                headers: { "Authorization": `token ${t}` }
+            });
+            if (!currentFileRes.ok) throw new Error("Échec synchro version actuelle.");
+            const currentData = await currentFileRes.json();
+            
+            logger("Restauration du code...");
+            const revertRes = await fetch(`https://api.github.com/repos/${r}/contents/index.html`, {
+                method: "PUT",
+                headers: { "Authorization": `token ${t}`, "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    message: "↩️ Back : Annulation de la dernière modification IA",
+                    content: prevData.content,
+                    sha: currentData.sha
+                })
+            });
+            if (revertRes.ok) {
+                logger("↩️ BACK ENVOYÉ. Attente de la validation de GitHub Pages...", "#ff7a00");
+                setTimeout(checkWorkflowStatus, 1500);
+            } else {
+                throw new Error("Refus de mise à jour par GitHub.");
+            }
+        } catch (e) {
+            isDeploying = false;
+            logger("ERREUR REVERT : " + e.message, "#f85149");
+            checkWorkflowStatus();
+        }
+    }
 
     async function start() {
-        const k = document.getElementById('gk').value;
-        const t = document.getElementById('gt').value;
-        const r = document.getElementById('rp').value;
-        const p = document.getElementById('pr').value;
-
-        document.getElementById('log').innerHTML = "";
-        logger("DÉBUT DU DIAGNOSTIC...");
-
         try {
+            const k = document.getElementById('gk').value.trim();
+            const t = document.getElementById('gt').value.trim();
+            const r = document.getElementById('rp').value.trim();
+            const p = document.getElementById('pr').value.trim();
+            
+            document.getElementById('log').innerHTML = "";
+            logger("DÉBUT DU DIAGNOSTIC...", "#ff7a00");
+
+            if (!k || !t || !r || !p) {
+                throw new Error("Tous les champs (Clé, Token, Pseudo/Repo, Instruction) doivent être remplis.");
+            }
+
+            // Armement du verrou de déploiement et de l'état visuel jaune immédiat
+            isDeploying = true;
+            deploymentStartTime = Date.now();
+            const vl = document.getElementById('voyantLeft'); const vr = document.getElementById('voyantRight');
+            if(vl && vr) { vl.className = 'voyant yellow'; vr.className = 'voyant yellow'; }
+
+            logger("Vérification de la clé Gemini...");
             const listRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${k}`);
             const listData = await listRes.json();
-            if (listData.error) throw new Error("Clé API invalide");
-
+            if (listData.error) throw new Error("Clé Gemini invalide : " + listData.error.message);
+            
             const model = listData.models.find(m => m.supportedGenerationMethods.includes("generateContent"));
-            if (!model) throw new Error("Aucun modèle trouvé.");
+            if (!model) throw new Error("Aucun modèle de génération disponible.");
             const modelName = model.name.split('/').pop();
-            logger(`MODÈLE DÉTECTÉ : ${modelName}`, "#58a6ff");
-
-            logger("Lecture GitHub...");
+            logger(`Modèle sélectionné : ${modelName}`);
+            
+            logger("Récupération du code source sur GitHub...");
             const gitRes = await fetch(`https://api.github.com/repos/${r}/contents/index.html`, {
                 headers: { "Authorization": `token ${t}` }
             });
+            if (!gitRes.ok) throw new Error("index.html introuvable ou Token invalide (Code: " + gitRes.status + ")");
             const gitData = await gitRes.json();
             const oldCode = decodeURIComponent(escape(atob(gitData.content)));
-
-            logger(`Appel IA (${modelName})...`);
+            
+            logger(`Envoi de la demande à l'IA...`);
             const gres = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${k}`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -98,11 +385,13 @@
                     contents: [{ parts: [{ text: `Code actuel:\n${oldCode}\n\nModif: ${p}\n\nRéponds avec le code complet.` }]}]
                 })
             });
-
+            if (!gres.ok) throw new Error("Erreur de l'API Gemini (Status: " + gres.status + ")");
             const gd = await gres.json();
+            
+            if(!gd.candidates || !gd.candidates[0].content.parts[0].text) throw new Error("L'IA a renvoyé une réponse vide.");
             let newCode = gd.candidates[0].content.parts[0].text.replace(/```[a-z]*\n|```/g, "").trim();
-
-            logger("Envoi vers GitHub...");
+            
+            logger("Mise à jour du dépôt GitHub...");
             const up = await fetch(`https://api.github.com/repos/${r}/contents/index.html`, {
                 method: "PUT",
                 headers: { "Authorization": `token ${t}`, "Content-Type": "application/json" },
@@ -112,14 +401,36 @@
                     sha: gitData.sha
                 })
             });
-
-            if (up.ok) logger("✅ RÉUSSI AVEC " + modelName, "#238636");
-            else logger("❌ Erreur GitHub", "red");
-
+            if (up.ok) {
+                logger("⚡ COMMIT ENVOYÉ. Attente du déploiement GitHub Pages...", "#ff7a00");
+                setTimeout(checkWorkflowStatus, 1500);
+            } else {
+                throw new Error("Échec de la synchronisation push GitHub (Status: " + up.status + ")");
+            }
         } catch (e) {
-            logger("ERREUR : " + e.message, "#f85149");
+            isDeploying = false;
+            logger("ERREUR CRITIQUE INTERCEPTÉE : " + e.message, "#f85149");
+            checkWorkflowStatus();
         }
     }
+
+    window.onload = function() {
+        try {
+            document.getElementById('gk').value = localStorage.getItem('k1') || '';
+            document.getElementById('gt').value = localStorage.getItem('k2') || '';
+            document.getElementById('rp').value = localStorage.getItem('k3') || '';
+            
+            updateLiveLink();
+            checkWorkflowStatus();
+            setInterval(checkWorkflowStatus, 5000);
+            
+            document.getElementById('log').innerHTML = "<div>> Système prêt. En attente d'une action...</div>";
+        } catch (e) {
+            alert("Erreur fatale d'initialisation : " + e.message);
+        }
+    };
 </script>
+
+<script>if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js'));}</script>
 </body>
 </html>
