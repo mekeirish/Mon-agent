@@ -1,10 +1,10 @@
 {
-  "name": "Agent IA Brahim",
-  "short_name": "Agent IA",
-  "start_url": "index.html",
+  "name": "Braincode",
+  "short_name": "Braincode",
+  "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#0d1117",
-  "theme_color": "#0d1117",
+  "background_color": "#1a1c20",
+  "theme_color": "#4b6cb7",
   "icons": [
     {
       "src": "icon.png",
