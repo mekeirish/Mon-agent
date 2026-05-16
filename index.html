@@ -2,20 +2,22 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Braincode</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Agent IA - PWA</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1e1e22">
     <link rel="apple-touch-icon" href="icon.png">
     <style>
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { 
             background: #1e1e22; 
             color: #c9d1d9; 
-            font-family: sans-serif; 
+            font-family: -apple-system, system-ui, sans-serif; 
             padding: 15px; 
+            margin: 0;
             display: flex; 
             flex-direction: column; 
-            min-height: 94vh; 
+            min-height: 100vh; 
         }
         .card { 
             background: #1e1e22; 
@@ -36,12 +38,9 @@
             box-sizing: border-box; 
             box-shadow: inset 4px 4px 8px #111113, inset -4px -4px 8px #2b2b31; 
             outline: none;
-            transition: box-shadow 0.3s ease;
+            font-size: 13px;
         }
-        input:focus, textarea:focus {
-            box-shadow: inset 2px 2px 4px #111113, inset -2px -2px 4px #2b2b31, 0 0 4px rgba(255, 122, 0, 0.4);
-        }
-        button { 
+        button.btn { 
             width: 100%; 
             padding: 15px; 
             border-radius: 12px; 
@@ -52,8 +51,10 @@
             transition: all 0.2s ease; 
             background: #1e1e22; 
             box-shadow: 5px 5px 10px #111113, -5px -5px 10px #2b2b31; 
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
-        button:active { 
+        button.btn:active { 
             box-shadow: inset 4px 4px 8px #111113, inset -4px -4px 8px #2b2b31; 
             transform: scale(0.99); 
         }
@@ -90,8 +91,8 @@
         }
         .live-btn { 
             flex-grow: 1; 
-            background: #1e1e22; 
-            color: #ffca28; 
+            background: #3a3a42; 
+            color: #ffffff; 
             border: none; 
             padding: 12px; 
             border-radius: 10px; 
@@ -102,27 +103,30 @@
             margin: 0 15px; 
             transition: all 0.2s ease; 
             display: block; 
-            font-size: 14px; 
+            font-size: 13px; 
             box-shadow: 4px 4px 8px #111113, -4px -4px 8px #2b2b31;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-sizing: border-box;
         }
         .live-btn:active { 
             box-shadow: inset 3px 3px 6px #111113, inset -3px -3px 6px #2b2b31; 
         }
         .voyant { width: 12px; height: 12px; border-radius: 50%; background: #111113; box-shadow: inset 1px 1px 2px #000; transition: all 0.4s ease; }
-        .voyant.yellow { background: #ffca28; box-shadow: 0 0 10px #ffca28, 0 0 20px #ffca28; animation: pulse-yellow 1s infinite alternate; }
-        .voyant.green { background: #238636; box-shadow: 0 0 10px #238636, 0 0 20px #238636; animation: pulse-green 1s infinite alternate; }
-        .voyant.red { background: #f85149; box-shadow: 0 0 10px #f85149, 0 0 20px #f85149; animation: pulse-red 1s infinite alternate; }
-        @keyframes pulse-yellow { from { opacity: 0.5; } to { opacity: 1; } }
-        @keyframes pulse-green { from { opacity: 0.5; } to { opacity: 1; } }
-        @keyframes pulse-red { from { opacity: 0.5; } to { opacity: 1; } }
+        .voyant.yellow { background: #ffca28; box-shadow: 0 0 10px #ffca28, 0 0 20px #ffca28; animation: pulse-yellow 0.8s infinite alternate; }
+        .voyant.green { background: #238636; box-shadow: 0 0 10px #238636, 0 0 20px #238636; animation: pulse-green 0.8s infinite alternate; }
+        .voyant.red { background: #f85149; box-shadow: 0 0 10px #f85149, 0 0 20px #f85149; animation: pulse-red 0.8s infinite alternate; }
+        @keyframes pulse-yellow { from { opacity: 0.4; } to { opacity: 1; } }
+        @keyframes pulse-green { from { opacity: 0.4; } to { opacity: 1; } }
+        @keyframes pulse-red { from { opacity: 0.4; } to { opacity: 1; } }
         .signature {
             text-align: center;
-            font-size: 12px;
-            color: #6e7681;
+            font-size: 11px;
+            color: #555;
             margin-top: auto;
-            padding-top: 25px;
-            font-weight: 500;
-            letter-spacing: 0.5px;
+            padding-top: 30px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
         }
     </style>
 
@@ -134,18 +138,19 @@
         <input type="password" id="gk" placeholder="Clé API Gemini" oninput="save()">
         <input type="password" id="gt" placeholder="GitHub Token" oninput="save()">
         <input type="text" id="rp" placeholder="Pseudo/Repo" oninput="save()">
-        <button class="blue" onclick="manualSave()">💾 SAUVEGARDER</button>
+        <button class="btn blue" onclick="manualSave()">💾 SAUVEGARDER</button>
     </div>
     <div class="card">
         <textarea id="pr" rows="3" placeholder="Instruction de modification..."></textarea>
-        <button class="green" onclick="start()">⚡ TESTER & APPLIQUER</button>
+        <button class="btn green" onclick="start()">⚡ TESTER & APPLIQUER</button>
         <div class="btn-group">
-            <button class="orange-btn" onclick="showHistory()">📜 HISTORIQUE</button>
-            <button class="orange-btn" onclick="undoLast()">↩️ BACK</button>
+            <button class="btn orange-btn" onclick="showHistory()">📜 HISTORIQUE</button>
+            <button class="btn orange-btn" onclick="undoLast()">↩️ BACK</button>
         </div>
         <div class="live-container">
             <div class="voyant" id="voyantLeft"></div>
-            <a id="liveBtn" class="live-btn" href="#" target="_blank">VOIR LE SITE LIVE</a>
+            <!-- La solution native : Un simple lien a, mis à jour dynamiquement -->
+            <a id="liveBtn" class="live-btn" href="#" target="_blank">VIEW LIVE SITE</a>
             <div class="voyant" id="voyantRight"></div>
         </div>
     </div>
@@ -153,7 +158,6 @@
     <div class="signature">Made by Brahim Laiche 2026 Paris</div>
 
 <script>
-    // Variables globales de contrôle du statut de déploiement
     let isDeploying = false;
     let deploymentStartTime = 0;
 
@@ -170,12 +174,58 @@
         return false;
     };
 
+    // --- Application stricte et asynchrone du Golden Link Protocol ---
+    async function updateGoldenLink() {
+        const r = document.getElementById('rp').value.trim();
+        const t = document.getElementById('gt').value.trim();
+        const liveBtn = document.getElementById('liveBtn');
+        
+        if (!r || !r.includes('/')) {
+            liveBtn.href = "#";
+            return;
+        }
+
+        let parts = r.split('/');
+        let user = parts[0].toLowerCase();
+        let repo = parts[1];
+        
+        // Configuration par défaut immédiate
+        liveUrl = `https://${user}.github.io/${repo}/`;
+        liveBtn.href = liveUrl;
+
+        // Requête silencieuse pour obtenir la vraie casse du repo si un Token est présent
+        if (t) {
+            try {
+                const repoRes = await fetch(`https://api.github.com/repos/${r}`, {
+                    headers: { "Authorization": `token ${t}` }
+                });
+                
+                if (repoRes.ok) {
+                    const repoData = await repoRes.json();
+                    const cleanUser = repoData.owner.login.toLowerCase();
+                    const cleanRepo = repoData.name; // La casse EXACTE renvoyée par le serveur
+                    liveBtn.href = `https://${cleanUser}.github.io/${cleanRepo}/`;
+                }
+            } catch (e) {
+                // Silencieux, on garde le fallback
+            }
+        }
+    }
+
+    // Prévention du clic si aucun dépôt n'est entré
+    document.getElementById('liveBtn').addEventListener('click', function(e) {
+        if(this.getAttribute('href') === '#') {
+            e.preventDefault();
+            alert("Renseigne d'abord un Pseudo/Repo valide.");
+        }
+    });
+
     function save() {
         try {
             localStorage.setItem('k1', document.getElementById('gk').value.trim());
             localStorage.setItem('k2', document.getElementById('gt').value.trim());
             localStorage.setItem('k3', document.getElementById('rp').value.trim());
-            updateLiveLink();
+            updateGoldenLink(); // Mise à jour dynamique du lien à chaque frappe
         } catch (e) {
             logger("Erreur sauvegarde auto : " + e.message, "#f85149");
         }
@@ -184,21 +234,6 @@
     function manualSave() {
         save();
         alert("Configuration sauvegardée !");
-    }
-
-    function updateLiveLink() {
-        try {
-            const r = document.getElementById('rp').value.trim();
-            const btn = document.getElementById('liveBtn');
-            if (r && r.includes('/')) {
-                const [user, repo] = r.split('/');
-                btn.href = `https://${user.toLowerCase()}.github.io/${repo}/`;
-            } else {
-                btn.href = "#";
-            }
-        } catch (e) {
-            logger("Erreur lien live : " + e.message, "#f85149");
-        }
     }
 
     async function checkWorkflowStatus() {
@@ -221,14 +256,12 @@
                 
                 const runCreatedTime = new Date(latestRun.created_at).getTime();
 
-                // Si une opération est en cours mais que GitHub remonte un vieux run complété antérieur au clic, on force le maintien du jaune.
                 if (isDeploying && runCreatedTime < deploymentStartTime) {
                     vLeft.className = 'voyant yellow';
                     vRight.className = 'voyant yellow';
                     return;
                 }
-
-                // Si le run détecté correspond ou est postérieur à notre action, on suit son état réel
+                
                 vLeft.className = 'voyant';
                 vRight.className = 'voyant';
 
@@ -238,7 +271,7 @@
                     vLeft.classList.add('green'); vRight.classList.add('green');
                     if (isDeploying) {
                         logger("🚀 LE DÉPLOIEMENT GITHUB PAGES EST EFFECTIF !", "#7ee787");
-                        isDeploying = false; // Relâche le verrou, le site est à jour
+                        isDeploying = false;
                     }
                 } else if (latestRun.status === 'completed' && (latestRun.conclusion === 'failure' || latestRun.conclusion === 'cancelled')) {
                     vLeft.classList.add('red'); vRight.classList.add('red');
@@ -246,7 +279,7 @@
                 }
             }
         } catch (e) {
-            // Échec silencieux
+            // Silencieux
         }
     }
 
@@ -286,11 +319,10 @@
                 return;
             }
 
-            // Armement du verrou de déploiement et de l'état visuel jaune immédiat
             isDeploying = true;
             deploymentStartTime = Date.now();
             const vl = document.getElementById('voyantLeft'); const vr = document.getElementById('voyantRight');
-            if(vl && vr) { vl.className = 'voyant yellow'; vr.className = 'voyant yellow'; }
+            if (vl && vr) { vl.className = 'voyant yellow'; vr.className = 'voyant yellow'; }
 
             document.getElementById('log').innerHTML = "";
             logger("LANCEMENT DE LA PROCÉDURE DE BACK...", "#ff7a00");
@@ -327,7 +359,7 @@
                 })
             });
             if (revertRes.ok) {
-                logger("↩️ BACK ENVOYÉ. Attente de la validation de GitHub Pages...", "#ff7a00");
+                logger("↩️ BACK TRANSMIS. Attente de la validation de GitHub Pages...", "#ff7a00");
                 setTimeout(checkWorkflowStatus, 1500);
             } else {
                 throw new Error("Refus de mise à jour par GitHub.");
@@ -353,11 +385,10 @@
                 throw new Error("Tous les champs (Clé, Token, Pseudo/Repo, Instruction) doivent être remplis.");
             }
 
-            // Armement du verrou de déploiement et de l'état visuel jaune immédiat
             isDeploying = true;
             deploymentStartTime = Date.now();
             const vl = document.getElementById('voyantLeft'); const vr = document.getElementById('voyantRight');
-            if(vl && vr) { vl.className = 'voyant yellow'; vr.className = 'voyant yellow'; }
+            if (vl && vr) { vl.className = 'voyant yellow'; vr.className = 'voyant yellow'; }
 
             logger("Vérification de la clé Gemini...");
             const listRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${k}`);
@@ -402,7 +433,7 @@
                 })
             });
             if (up.ok) {
-                logger("⚡ COMMIT ENVOYÉ. Attente du déploiement GitHub Pages...", "#ff7a00");
+                logger("⚡ TRANSMISSION EFFECTUÉE. Attente du déploiement GitHub Pages...", "#ff7a00");
                 setTimeout(checkWorkflowStatus, 1500);
             } else {
                 throw new Error("Échec de la synchronisation push GitHub (Status: " + up.status + ")");
@@ -420,7 +451,8 @@
             document.getElementById('gt').value = localStorage.getItem('k2') || '';
             document.getElementById('rp').value = localStorage.getItem('k3') || '';
             
-            updateLiveLink();
+            updateGoldenLink(); // Initie le lien proprement au démarrage
+            
             checkWorkflowStatus();
             setInterval(checkWorkflowStatus, 5000);
             
